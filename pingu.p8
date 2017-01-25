@@ -27,15 +27,15 @@ characters  = {
         id          =   0,
         name        =   "Pingu",
         has_black   =   true,
-        screen_pos  =   {
+        x           =   59,
+        y           =   59,
+        map_pos  =   {
             x   =   59,
             y   =   59
         },
-        x           =   59,
-        y           =   59,
         jump_height =   3,
         speed       =   3,
-        action      =   actions.idle,      -- Defalt action
+        action      =   actions.idle,       -- Defalt action
         direction   =   directions.front,   -- Default direction
         moving      =   false,
         jumping     =   false,
@@ -47,6 +47,32 @@ characters  = {
             jump_side       =   {6},
             crouch_still    =   {7},
             crouch_side     =   {8, 9}
+        }
+    },
+    dog   = {
+        id          =   1,
+        name        =   "Dog",
+        has_black   =   false,
+        x           =   59,
+        y           =   59,
+        map_pos  =   {
+            x   =   59,
+            y   =   59
+        },
+        jump_height =   2,
+        speed       =   4,
+        action      =   actions.idle,       -- Defalt action
+        direction   =   directions.front,   -- Default direction
+        moving      =   false,
+        jumping     =   false,
+        crouching   =   false,
+        sprites     =   {
+            idle            =   {},
+            walk            =   {32, 33, 34, 35},
+            jump_still      =   {},
+            jump_side       =   {},
+            crouch_still    =   {},
+            crouch_side     =   {}
         }
     }
 }
@@ -113,20 +139,20 @@ function printDebug()
     print("player action: " .. player.action, 12, 18, 1)
 end
 
-function resetPalette()
-    palt(15, true)
-    palt(0, false)
-end
-
---[[ Animate character
--- Character o
+--[[
+-- Animate character
+-- Character character
 -- Animation's name animation
--- Speed of the animation sp (frames/second)
--- Boolean fl (true if the animation should be flipped. Default is false) ]]
+-- Boolean flipped (true if the animation should be flipped. Default is false)
+-- Speed of the animation speed (frames/second)
+--]]
 
-function anim(character, animation, flipped, speed)
+function anim(character, animation, flipped, speed, x, y)
     sprite = character.sprites[animation][1]
     num_of_sprites = #character.sprites[animation]
+    if (not x) x = character.x
+    if (not y) y = character.y
+
     if num_of_sprites == 1 then
         character.a_fr = sprite
     else
@@ -135,22 +161,19 @@ function anim(character, animation, flipped, speed)
 
         character.a_ct+=1
 
-        if(character.a_ct%(30/speed) == 0) then
+        if(character.a_ct%(flr(30/speed)) == 0) then
         character.a_st+=1
         if(character.a_st == num_of_sprites) character.a_st=0
         end
 
         character.a_fr = sprite + character.a_st
     end
-    spr(character.a_fr, character.screen_pos.x, character.screen_pos.y, 1, 1, flipped)
+
+    spr(character.a_fr, x, y, 1, 1, flipped)
 end
 
 
 function drawPlayer()
-    if player.has_black == true then
-        palt(15,true)   -- We want to draw a black penguin, so we set beige (15) to be transparent
-        palt(0, false)  -- Default transparent color is black (0), so we set as not transparent
-    end
     if not player.moving then
         if player.jumping then
             anim(player, "jump_still")
@@ -161,27 +184,12 @@ function drawPlayer()
         end
     else
         if player.jumping then
-            if player.direction == directions.right then
-                anim(player, "jump_side")
-            else
-                anim(player, "jump_side", true)
-            end
+            anim(player, "jump_side", player.direction == directions.left)
         elseif player.crouching then
-            if player.direction == directions.right then
-                anim(player, "crouch_side", false, 5)
-            else
-                anim(player, "crouch_side", true, 5)
-            end
+            anim(player, "crouch_side", player.direction == directions.left, 5)
         else
-            if player.direction == directions.right then
-                anim(player, "walk", false, 10)
-            else
-                anim(player, "walk", true, 10)
-            end
+            anim(player, "walk", player.direction == directions.left, 10)
         end
-    end
-    if player.has_black == true then
-        resetPalette()  -- We reset the color palette (undo previous transparency changes)
     end
 end
 
@@ -194,8 +202,21 @@ function _draw()
     if debug == true then
         printDebug()
     end
-    -- Draw the playable character sprite
-    drawPlayer()
+
+    -- Draw all characters without black
+    if not player.has_black then
+        drawPlayer()
+    end
+    anim(characters.dog, "walk", false, 7, 59, 68)
+
+    -- Draw all characters with black
+    palt(15, true)  -- We want to draw a black penguin, so we set beige (15) to be transparent
+    palt(0, false)  -- Default transparent color is black (0), so we set as not transparent
+    if player.has_black then
+        drawPlayer()
+    end
+
+    palt()  -- We reset the color palette (undo previous transparency changes)
 end
 __gfx__
 00000000fffffffffffffffffffffffffffffffff0f00f0ff0f00f0fffffffffffffffffffffffffffffff0fffffffffffffffffffffffff0000000000000000
@@ -492,3 +513,4 @@ __music__
 00 41424344
 00 41424344
 00 41424344
+
