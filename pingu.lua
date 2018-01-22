@@ -9,7 +9,7 @@ B1 = 4  -- ACTION BUTTON 1 (Z DEFAULT)
 B2 = 5  -- ACTION BUTTON 2 (X DEFAULT)
 
 -- Colors
-COLOR_BG    = 5 -- background color
+COLOR_BG    = 3 -- background color
 
 -- Debug
 debug   =   true
